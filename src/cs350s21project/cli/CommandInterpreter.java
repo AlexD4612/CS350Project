@@ -15,9 +15,6 @@ public class CommandInterpreter {
 			//code
 			//break;
 		
-		//test
-		
-		//test2
 		}
 	}
 	
