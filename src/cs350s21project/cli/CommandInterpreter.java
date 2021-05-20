@@ -7,6 +7,8 @@ import cs350s21project.controller.*;
 import cs350s21project.controller.command.actor.CommandActorCreateActor;
 import cs350s21project.controller.command.actor.CommandActorDefineShip;
 import cs350s21project.controller.command.munition.CommandMunitionDefineBomb;
+import cs350s21project.controller.command.munition.CommandMunitionDefineDepthCharge;
+import cs350s21project.controller.command.munition.CommandMunitionDefineMissile;
 import cs350s21project.controller.command.munition.CommandMunitionDefineShell;
 import cs350s21project.controller.command.sensor.CommandSensorDefineRadar;
 import cs350s21project.controller.command.view.*;
@@ -17,6 +19,9 @@ public class CommandInterpreter {
 	private int size;
 	private String objectType;
 	private String subType;
+	private AgentID fuzeId;
+	private AgentID sensorId;
+	
 	
 	private Latitude setLatitude(String str) {
 		String [] latData = str.split("[*#'\"]");
@@ -49,6 +54,10 @@ public class CommandInterpreter {
 		
 		return coordinatesReal;
 		
+	}
+	
+	private Time setTime(String time) {
+		return new Time(Double.parseDouble(time));
 	}
 	
 	public void evaluate(String commandText) {
@@ -125,16 +134,23 @@ public class CommandInterpreter {
 					System.out.printf(subType+" %s "+"created%n",id.getID());
 					break;
 				case "shell":
-					System.out.println("Shell created");
 					id = new AgentID(argumentList.get(3));
 					cmd.schedule(new CommandMunitionDefineShell(cmd,originalCommandText,id));
 					System.out.printf(subType+" %s "+"created%n",id.getID());
 					break;
 				case "depth_charge":
-					//TODO
+					id = new AgentID(argumentList.get(3));
+					fuzeId = new AgentID(argumentList.get(6));
+					cmd.schedule(new CommandMunitionDefineDepthCharge(cmd,originalCommandText,id,fuzeId));
+					System.out.printf("Depth charge %s created with fuze %s",id.getID(),fuzeId.getID());
 					break;
 				case "missile":
-					//TODO
+					id = new AgentID(argumentList.get(3));
+					sensorId = new AgentID(argumentList.get(6));
+					fuzeId = new AgentID (argumentList.get(8));
+					DistanceNauticalMiles distance = new DistanceNauticalMiles(Double.parseDouble(argumentList.get(11)));
+					cmd.schedule(new CommandMunitionDefineMissile(cmd,originalCommandText,id,sensorId,fuzeId,distance));
+					System.out.printf("Created missile %s with sensor %s and fuze %s and arming distance %f", id.getID(),sensorId.getID(),fuzeId.getID(),distance.getValue_());
 					break;
 				case "torpedo":
 					//TODO
@@ -178,7 +194,8 @@ public class CommandInterpreter {
 			break;
 	//---------MISC Commands-------------\\
 		case "delete":
-			//TODO
+			id = new AgentID(argumentList.get(2));
+			cmd.schedule(new CommandViewDeleteWindow(cmd,originalCommandText,id));
 			break;
 		case "set":
 			//TODO
@@ -194,7 +211,7 @@ public class CommandInterpreter {
 			break;
 		case "@set":
 			//TODO
-			break;
+			break; 
 		case"@exit":
 			//TODO
 			break;
