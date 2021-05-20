@@ -109,6 +109,7 @@ public class CommandInterpreter {
 					break;
 				case "shell":
 					System.out.println("Shell created");
+					id = new AgentID(argumentList.get(3));
 					cmd.schedule(new CommandMunitionDefineShell(cmd,originalCommandText,id));
 					System.out.println(subType+" "+'"'+id.getID()+'"'+" created");
 					break;
