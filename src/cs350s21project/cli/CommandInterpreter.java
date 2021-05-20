@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import cs350s21project.controller.*;
+import cs350s21project.controller.command.actor.CommandActorCreateActor;
 import cs350s21project.controller.command.actor.CommandActorDefineShip;
 import cs350s21project.controller.command.munition.CommandMunitionDefineBomb;
 import cs350s21project.controller.command.munition.CommandMunitionDefineShell;
@@ -18,12 +19,12 @@ public class CommandInterpreter {
 	private String subType;
 	
 	private Latitude setLatitude(String str) {
-		String [] latData = str.split("[*#']");
+		String [] latData = str.split("[*#'\"]");
 		return new Latitude(Integer.parseInt(latData[0]), Integer.parseInt(latData[1]),Double.parseDouble(latData[2]));
 	}
 	
 	private Longitude setLongitude(String str) {
-		String [] lonData = str.split("[*#']");
+		String [] lonData = str.split("[*#'\"]");
 		return new Longitude(Integer.parseInt(lonData[0]), Integer.parseInt(lonData[1]),Double.parseDouble(lonData[2]));
 	}
 	
@@ -38,6 +39,16 @@ public class CommandInterpreter {
 	
 	private Sensitivity setSensitivity(String sensitivity) {
 		return new Sensitivity(Double.parseDouble(sensitivity));
+	}
+	private CoordinateWorld3D setCoordinates(String coordinates) {
+		String[] coords = coordinates.split("/");
+		Latitude lat = setLatitude(coords[0]);
+		Longitude lon = setLongitude(coords[1]);
+		Altitude alt = new Altitude(Integer.parseInt(coords[2]));
+		CoordinateWorld3D coordinatesReal = new CoordinateWorld3D(lat, lon, alt);
+		
+		return coordinatesReal;
+		
 	}
 	
 	public void evaluate(String commandText) {
@@ -82,7 +93,13 @@ public class CommandInterpreter {
 					throw new RuntimeException("Invalid view type for create window.");
 				break;
 			case "actor":
-				//TODO
+				id = new AgentID(argumentList.get(2));
+				AgentID fromId = new AgentID(argumentList.get(4));
+				CoordinateWorld3D coordinates = setCoordinates(argumentList.get(6));
+				Course course = new Course(Integer.parseInt(argumentList.get(9)));
+				Groundspeed speed = new Groundspeed(Integer.parseInt(argumentList.get(11)));
+				cmd.schedule(new CommandActorCreateActor(cmd,originalCommandText,id,fromId,coordinates,course,speed));
+				System.out.printf("Actor %s from %s at %s with course %s and speed %s created", id.getID(),fromId.getID(),coordinates.toString(),course.toString(),speed.toString());
 				break;
 			}//End of create objectType switch
 			break;
@@ -105,13 +122,13 @@ public class CommandInterpreter {
 				case "bomb":
 					id = new AgentID(argumentList.get(3));
 					cmd.schedule(new CommandMunitionDefineBomb(cmd,originalCommandText,id));
-					System.out.println(subType+" "+'"'+id.getID()+'"'+" created");
+					System.out.printf(subType+" %s "+"created%n",id.getID());
 					break;
 				case "shell":
 					System.out.println("Shell created");
 					id = new AgentID(argumentList.get(3));
 					cmd.schedule(new CommandMunitionDefineShell(cmd,originalCommandText,id));
-					System.out.println(subType+" "+'"'+id.getID()+'"'+" created");
+					System.out.printf(subType+" %s "+"created%n",id.getID());
 					break;
 				case "depth_charge":
 					//TODO
@@ -128,7 +145,6 @@ public class CommandInterpreter {
 				subType = argumentList.get(2); //Types of sensors i.e. radar, thermal, acoustic
 				switch(subType) {
 				case "radar":
-					//TODO
 					id = new AgentID(argumentList.get(3));
 					//with = 4, field = 5, of = 6, view = 7
 					FieldOfView fov = this.setFieldOfView(argumentList.get(8));
