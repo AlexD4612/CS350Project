@@ -1,8 +1,13 @@
 package cs350s21project.cli;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import cs350s21project.controller.*;
+import cs350s21project.controller.command.actor.CommandActorDefineShip;
 import cs350s21project.controller.command.munition.CommandMunitionDefineBomb;
 import cs350s21project.controller.command.munition.CommandMunitionDefineShell;
+import cs350s21project.controller.command.sensor.CommandSensorDefineRadar;
 import cs350s21project.controller.command.view.*;
 import cs350s21project.datatype.*;
 public class CommandInterpreter {
@@ -22,6 +27,19 @@ public class CommandInterpreter {
 		return new Longitude(Integer.parseInt(lonData[0]), Integer.parseInt(lonData[1]),Double.parseDouble(lonData[2]));
 	}
 	
+	private FieldOfView setFieldOfView(String degree) {
+		AngleNavigational angleDegree = new AngleNavigational(Double.parseDouble(degree));
+		return new FieldOfView(angleDegree);
+	}
+	
+	private Power setPower(String power) {
+		return new Power(Double.parseDouble(power));
+	}
+	
+	private Sensitivity setSensitivity(String sensitivity) {
+		return new Sensitivity(Double.parseDouble(sensitivity));
+	}
+	
 	public void evaluate(String commandText) {
 		String originalCommandText = commandText;
 		commandText=commandText.toLowerCase(); // lower case to allow any input in weird casing
@@ -38,6 +56,7 @@ public class CommandInterpreter {
 		String commandType = argumentList.get(0);
 		CommandManagers cmd = CommandManagers.getInstance();
 		switch(commandType) {	
+		//--------Create Commands------------\\
 		case "create":
 			objectType = argumentList.get(1);
 			switch(objectType) {
@@ -71,7 +90,13 @@ public class CommandInterpreter {
 			objectType = argumentList.get(1);
 			switch(objectType) {
 			case "ship":
-				//TODO
+				id = new AgentID(argumentList.get(2));
+				//index = 3, munition(s) = 4
+				List<AgentID> munitionList = argumentList.subList(5,argumentList.size()).stream().map(n -> new AgentID(n)).collect(Collectors.toList());
+				cmd.schedule(new CommandActorDefineShip(cmd,originalCommandText,id,munitionList));
+				System.out.print("Ship: " + id.getID() + " has been created with munitions: ");
+				munitionList.stream().forEach((n) -> System.out.print(n.getID() + " "));
+				System.out.println();
 				break;
 	//--------Munition Commands------------\\
 			case "munition":
@@ -83,6 +108,7 @@ public class CommandInterpreter {
 					System.out.println(subType+" "+'"'+id.getID()+'"'+" created");
 					break;
 				case "shell":
+					System.out.println("Shell created");
 					id = new AgentID(argumentList.get(3));
 					cmd.schedule(new CommandMunitionDefineShell(cmd,originalCommandText,id));
 					System.out.println(subType+" "+'"'+id.getID()+'"'+" created");
@@ -103,6 +129,15 @@ public class CommandInterpreter {
 				switch(subType) {
 				case "radar":
 					//TODO
+					id = new AgentID(argumentList.get(3));
+					//with = 4, field = 5, of = 6, view = 7
+					FieldOfView fov = this.setFieldOfView(argumentList.get(8));
+					//power = 9
+					Power power = this.setPower(argumentList.get(10));
+					//sensitivity = 11
+					Sensitivity sensitivity = this.setSensitivity(argumentList.get(12));
+					cmd.schedule(new CommandSensorDefineRadar(cmd,originalCommandText,id,fov,power,sensitivity));
+					System.out.printf("Radar Sensor %s has been made.%n",id.getID());
 					break;
 				case"thermal":
 					//TODO
@@ -149,4 +184,3 @@ public class CommandInterpreter {
 }
 		
 	
-
