@@ -194,9 +194,11 @@ public class CommandInterpreter {
 			break;
 		case "@set":
 			//TODO
-			break; 
+			break;
+		case"@exit":
+			//TODO
+			break;
 		}//End of switch(commandType)
 	}//End of evaluate()
 }
-		
 	
