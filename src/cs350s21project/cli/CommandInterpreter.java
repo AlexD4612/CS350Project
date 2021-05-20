@@ -211,16 +211,11 @@ public class CommandInterpreter {
 			break;
 		case "@set":
 			//TODO
-<<<<<<< Updated upstream
 			break; 
-=======
-			break;
 		case"@exit":
-			//T
+			//TODO
 			break;
->>>>>>> Stashed changes
 		}//End of switch(commandType)
 	}//End of evaluate()
 }
-		
 	
