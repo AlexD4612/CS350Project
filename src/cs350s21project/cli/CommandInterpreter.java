@@ -32,6 +32,14 @@ public class CommandInterpreter {
 		return new FieldOfView(angleDegree);
 	}
 	
+	private Power setPower(String power) {
+		return new Power(Double.parseDouble(power));
+	}
+	
+	private Sensitivity setSensitivity(String sensitivity) {
+		return new Sensitivity(Double.parseDouble(sensitivity));
+	}
+	
 	public void evaluate(String commandText) {
 		String originalCommandText = commandText;
 		commandText=commandText.toLowerCase(); // lower case to allow any input in weird casing
@@ -124,9 +132,9 @@ public class CommandInterpreter {
 					//with = 4, field = 5, of = 6, view = 7
 					FieldOfView fov = this.setFieldOfView(argumentList.get(8));
 					//power = 9
-					Power power = new Power(Double.parseDouble(argumentList.get(10)));
+					Power power = this.setPower(argumentList.get(10));
 					//sensitivity = 11
-					Sensitivity sensitivity = new Sensitivity(Double.parseDouble(argumentList.get(12)));
+					Sensitivity sensitivity = this.setSensitivity(argumentList.get(12));
 					cmd.schedule(new CommandSensorDefineRadar(cmd,originalCommandText,id,fov,power,sensitivity));
 					System.out.printf("Radar Sensor %s has been made.%n",id.getID());
 					break;
