@@ -7,7 +7,9 @@ import cs350s21project.controller.*;
 import cs350s21project.controller.command.actor.CommandActorDefineShip;
 import cs350s21project.controller.command.munition.CommandMunitionDefineBomb;
 import cs350s21project.controller.command.munition.CommandMunitionDefineShell;
+import cs350s21project.controller.command.sensor.CommandSensorDefineAcoustic;
 import cs350s21project.controller.command.sensor.CommandSensorDefineRadar;
+import cs350s21project.controller.command.sensor.CommandSensorDefineThermal;
 import cs350s21project.controller.command.view.*;
 import cs350s21project.datatype.*;
 public class CommandInterpreter {
@@ -16,6 +18,13 @@ public class CommandInterpreter {
 	private int size;
 	private String objectType;
 	private String subType;
+
+	private AgentID fuzeId;
+	private AgentID sensorId;
+	private FieldOfView fov;
+	private Power power;
+	private Sensitivity sensitivity;
+
 	
 	private Latitude setLatitude(String str) {
 		String [] latData = str.split("[*#']");
@@ -41,6 +50,12 @@ public class CommandInterpreter {
 	}
 	
 	public void evaluate(String commandText) {
+		String [] commandArray = commandText.split(";");
+		for(String command: commandArray)
+				this.evaluateString(command);
+	}
+	
+	private void evaluateString(String commandText) {
 		String originalCommandText = commandText;
 		commandText=commandText.toLowerCase(); // lower case to allow any input in weird casing
 		commandText.trim(); //trim all whitespace
@@ -129,23 +144,33 @@ public class CommandInterpreter {
 				switch(subType) {
 				case "radar":
 					//TODO
-					id = new AgentID(argumentList.get(3));
+					sensorId = new AgentID(argumentList.get(3));
 					//with = 4, field = 5, of = 6, view = 7
-					FieldOfView fov = this.setFieldOfView(argumentList.get(8));
+					fov = this.setFieldOfView(argumentList.get(8));
 					//power = 9
-					Power power = this.setPower(argumentList.get(10));
+					power = this.setPower(argumentList.get(10));
 					//sensitivity = 11
-					Sensitivity sensitivity = this.setSensitivity(argumentList.get(12));
-					cmd.schedule(new CommandSensorDefineRadar(cmd,originalCommandText,id,fov,power,sensitivity));
-					System.out.printf("Radar Sensor %s has been made.%n",id.getID());
+					sensitivity = this.setSensitivity(argumentList.get(12));
+					cmd.schedule(new CommandSensorDefineRadar(cmd,originalCommandText,sensorId,fov,power,sensitivity));
+					System.out.printf("Radar Sensor %s has been made.%n",sensorId.getID());
 					break;
 				case"thermal":
-					//TODO
+					sensorId = new AgentID(argumentList.get(3));
+					//with = 4, field = 5, of = 6, view = 7
+					fov = this.setFieldOfView(argumentList.get(8));
+					//sensitivity = 9
+					sensitivity = this.setSensitivity(argumentList.get(10));
+					cmd.schedule(new CommandSensorDefineThermal(cmd,originalCommandText,sensorId,fov,sensitivity));
+					System.out.printf("Thermal Sensor %s has been made with fov: %f and sensitivity: %f.%n", sensorId.getID(),fov.getLimit().getValue_(),sensitivity.getSensitivity());
 					break;
 				case"acoustic":
-					//TODO
+					sensorId = new AgentID(argumentList.get(3));
+					//with = 4, sensitivity = 5
+					sensitivity = this.setSensitivity(argumentList.get(6));
+					cmd.schedule(new CommandSensorDefineAcoustic(cmd,originalCommandText,sensorId,sensitivity));
+					System.out.printf("Acoustic Sensor %s has been made with sensitivity: %f.%n", sensorId.getID(),sensitivity.getSensitivity());
 					break;
-				case "sonar":
+				case "sonar": //Can have either active or passive.
 					//TODO
 					break;
 				case "depth":
