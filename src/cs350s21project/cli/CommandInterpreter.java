@@ -10,6 +10,8 @@ import cs350s21project.controller.command.munition.CommandMunitionDefineBomb;
 import cs350s21project.controller.command.munition.CommandMunitionDefineShell;
 import cs350s21project.controller.command.sensor.CommandSensorDefineRadar;
 import cs350s21project.controller.command.view.*;
+import cs350s21project.controller.command.misc.*;
+
 import cs350s21project.datatype.*;
 public class CommandInterpreter {
 
@@ -196,7 +198,7 @@ public class CommandInterpreter {
 			//TODO
 			break;
 		case"@exit":
-			//TODO
+			cmd.schedule(new CommandMiscExit(cmd, originalCommandText));
 			break;
 		}//End of switch(commandType)
 	}//End of evaluate()
