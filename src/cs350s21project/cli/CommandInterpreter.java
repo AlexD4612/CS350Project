@@ -3,23 +3,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 import cs350s21project.controller.*;
-import cs350s21project.controller.command.actor.CommandActorCreateActor;
-import cs350s21project.controller.command.actor.CommandActorDefineShip;
-import cs350s21project.controller.command.munition.CommandMunitionDefineBomb;
-import cs350s21project.controller.command.munition.CommandMunitionDefineDepthCharge;
-import cs350s21project.controller.command.munition.CommandMunitionDefineMissile;
-import cs350s21project.controller.command.munition.CommandMunitionDefineShell;
-import cs350s21project.controller.command.sensor.CommandSensorDefineAcoustic;
-import cs350s21project.controller.command.sensor.CommandSensorDefineDepth;
-import cs350s21project.controller.command.sensor.CommandSensorDefineDistance;
-import cs350s21project.controller.command.sensor.CommandSensorDefineRadar;
-import cs350s21project.controller.command.sensor.CommandSensorDefineSonarActive;
-import cs350s21project.controller.command.sensor.CommandSensorDefineSonarPassive;
-import cs350s21project.controller.command.sensor.CommandSensorDefineThermal;
-import cs350s21project.controller.command.sensor.CommandSensorDefineTime;
+import cs350s21project.controller.CommandManagers;
+import cs350s21project.controller.command.actor.*;
+import cs350s21project.controller.command.munition.*;
+import cs350s21project.controller.command.sensor.*;
 import cs350s21project.controller.command.view.*;
+import cs350s21project.controller.command.misc.*;
 import cs350s21project.datatype.*;
+
+
+
 public class CommandInterpreter {
 
 	private AgentID id;
@@ -30,6 +25,7 @@ public class CommandInterpreter {
 
 	private AgentID fuzeId;
 	private AgentID sensorId;
+	private AgentID munitionId;
 	private FieldOfView fov;
 	private Power power;
 	private Sensitivity sensitivity;
@@ -128,7 +124,7 @@ public class CommandInterpreter {
 				Course course = new Course(Integer.parseInt(argumentList.get(9)));
 				Groundspeed speed = new Groundspeed(Integer.parseInt(argumentList.get(11)));
 				cmd.schedule(new CommandActorCreateActor(cmd,originalCommandText,id,fromId,coordinates,course,speed));
-				System.out.printf("Actor %s from %s at %s with course %s and speed %s created", id.getID(),fromId.getID(),coordinates.toString(),course.toString(),speed.toString());
+				System.out.printf("Actor %s from %s at %s with course %f and speed %f created%n", id.getID(),fromId.getID(),coordinates.toString(),course.getValue_(),speed.getValue_());
 				break;
 			}//End of create objectType switch
 			break;
@@ -162,7 +158,7 @@ public class CommandInterpreter {
 					id = new AgentID(argumentList.get(3));
 					fuzeId = new AgentID(argumentList.get(6));
 					cmd.schedule(new CommandMunitionDefineDepthCharge(cmd,originalCommandText,id,fuzeId));
-					System.out.printf("Depth charge %s created with fuze %s",id.getID(),fuzeId.getID());
+					System.out.printf("Depth charge %s created with fuze %s%n",id.getID(),fuzeId.getID());
 					break;
 				case "missile":
 					id = new AgentID(argumentList.get(3));
@@ -170,10 +166,15 @@ public class CommandInterpreter {
 					fuzeId = new AgentID (argumentList.get(8));
 					DistanceNauticalMiles distance = new DistanceNauticalMiles(Double.parseDouble(argumentList.get(11)));
 					cmd.schedule(new CommandMunitionDefineMissile(cmd,originalCommandText,id,sensorId,fuzeId,distance));
-					System.out.printf("Created missile %s with sensor %s and fuze %s and arming distance %f", id.getID(),sensorId.getID(),fuzeId.getID(),distance.getValue_());
+					System.out.printf("Created missile %s with sensor %s and fuze %s and arming distance %f%n", id.getID(),sensorId.getID(),fuzeId.getID(),distance.getValue_());
 					break;
 				case "torpedo":
-					//TODO
+					id = new AgentID(argumentList.get(3));
+					sensorId = new AgentID(argumentList.get(6));
+					fuzeId = new AgentID (argumentList.get(8));
+					Time time = setTime(argumentList.get(11));
+					cmd.schedule(new CommandMunitionDefineTorpedo(cmd,originalCommandText,id,sensorId,fuzeId,time));
+					System.out.printf("Created torpedo %s with sensor %s and fuze %s and arming time %f seconds%n", id.getID(),sensorId.getID(),fuzeId.getID(),time.getValue_());
 					break;
 				}
 	//-------Sensor/Fuze Commands-----------\\
@@ -251,27 +252,95 @@ public class CommandInterpreter {
 			} //End define commandType switch
 			break;
 	//---------MISC Commands-------------\\
+		
 		case "delete":
 			id = new AgentID(argumentList.get(2));
 			cmd.schedule(new CommandViewDeleteWindow(cmd,originalCommandText,id));
+			System.out.printf("deleted window %s%n", id.getID());
 			break;
+
 		case "set":
-			//TODO
+			switch(argumentList.get(2)) {
+				case "load":
+					id = new AgentID(argumentList.get(1));
+					munitionId = new AgentID(argumentList.get(4));
+					cmd.schedule(new CommandActorLoadMunition(cmd,originalCommandText,id,munitionId));
+					System.out.printf("Loaded new munition for actor %s from %s%n",id.getID(),munitionId.getID());
+				break;
+          
+				case "deploy":
+					if(!argumentList.contains("at")) {
+						id = new AgentID(argumentList.get(1));
+						munitionId = new AgentID(argumentList.get(4));
+						cmd.schedule(new CommandActorDeployMunition(cmd,originalCommandText,id,munitionId));
+						System.out.printf("Muniton %s deployed from %s%n", munitionId.getID(),id.getID());
+					}
+					else {
+						id = new AgentID(argumentList.get(1));
+						munitionId = new AgentID(argumentList.get(4));
+						AttitudeYaw azimuth = new AttitudeYaw(Integer.parseInt(argumentList.get(7)));
+						AttitudePitch elevation = new AttitudePitch(Integer.parseInt(argumentList.get(9)));
+						cmd.schedule(new CommandActorDeployMunitionShell(cmd, originalCommandText, id, munitionId, azimuth, elevation));
+						System.out.printf("Muniton %s deployed from %s at azimuth %f and elevation %f%n", munitionId.getID(),id.getID(),azimuth.getValue_(),elevation.getValue_());
+					}
+          break;
+          
+					case "speed":
+          id = new AgentID(argumentList.get(1));
+					Groundspeed newSpeed = new Groundspeed(Double.parseDouble(argumentList.get(3)));
+					
+					cmd.schedule(new CommandActorSetSpeed(cmd, originalCommandText,id, newSpeed));
+				break;
+				
+				case "course":
+           id = new AgentID(argumentList.get(1));
+					Course newCourse = new Course(Double.parseDouble(argumentList.get(3)));
+					
+					cmd.schedule(new CommandActorSetCourse(cmd,originalCommandText,id,newCourse));
+				break;
+				
+				// depth and altitude are nearly identical cases,
+				// both are measures of distance from the surface
+				// neither should be less than zero.
+				// internally, however, we treat depth as negative 
+				// altitude, so we need to cover that case in the code
+				case "depth":
+				case "altitude":
+           id = new AgentID(argumentList.get(1));
+					double altitudeValue = Double.parseDouble(argumentList.get(3));
+				
+					// in practice, this means just flip the sign if the user specified depth
+					if(argumentList.get(2).equals("depth"))
+						altitudeValue *= -1.0;
+				
+					Altitude newAltitude = new Altitude(altitudeValue);
+					
+					cmd.schedule(new CommandActorSetAltitudeDepth(cmd,
+																  originalCommandText,
+																  id,
+																  newAltitude));					
+				break;
+			}
+
 			break;
+
 		case "@load":
 			//TODO
 			break;
+
 		case "@wait":
 			//TODO
 			break;
+
 		case"@pause":
 			//TODO
 			break;
+
 		case "@set":
 			//TODO
 			break; 
 		case"@exit":
-			//TODO
+			cmd.schedule(new CommandMiscExit(cmd, originalCommandText));
 			break;
 		}//End of switch(commandType)
 	}//End of evaluate()
