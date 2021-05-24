@@ -11,8 +11,13 @@ import cs350s21project.controller.command.munition.CommandMunitionDefineDepthCha
 import cs350s21project.controller.command.munition.CommandMunitionDefineMissile;
 import cs350s21project.controller.command.munition.CommandMunitionDefineShell;
 import cs350s21project.controller.command.sensor.CommandSensorDefineAcoustic;
+import cs350s21project.controller.command.sensor.CommandSensorDefineDepth;
+import cs350s21project.controller.command.sensor.CommandSensorDefineDistance;
 import cs350s21project.controller.command.sensor.CommandSensorDefineRadar;
+import cs350s21project.controller.command.sensor.CommandSensorDefineSonarActive;
+import cs350s21project.controller.command.sensor.CommandSensorDefineSonarPassive;
 import cs350s21project.controller.command.sensor.CommandSensorDefineThermal;
+import cs350s21project.controller.command.sensor.CommandSensorDefineTime;
 import cs350s21project.controller.command.view.*;
 import cs350s21project.datatype.*;
 public class CommandInterpreter {
@@ -28,11 +33,7 @@ public class CommandInterpreter {
 	private FieldOfView fov;
 	private Power power;
 	private Sensitivity sensitivity;
-<<<<<<< Updated upstream
-=======
 	private Time time;
-	
->>>>>>> Stashed changes
 
 
 	
@@ -208,7 +209,6 @@ public class CommandInterpreter {
 					System.out.printf("Acoustic Sensor %s has been made with sensitivity: %f.%n", sensorId.getID(),sensitivity.getSensitivity());
 					break;
 				case "sonar": //Can have either active or passive.
-					//TODO
 					String sonarType = argumentList.get(3);
 					sensorId = new AgentID(argumentList.get(4));
 					if(sonarType.equals("active")) {
@@ -227,10 +227,13 @@ public class CommandInterpreter {
 						throw new RuntimeException("Invalid type of sonar radar.");
 					break;
 				case "depth":
-					//TODO
+					fuzeId = new AgentID(argumentList.get(3));
+					Altitude alt = new Altitude(Integer.parseInt(argumentList.get(7)));
+					cmd.schedule(new CommandSensorDefineDepth(cmd,originalCommandText,fuzeId,alt));
+					System.out.printf("Depth sensor %s created with trigger depth %f%n", fuzeId.getID(),alt.getValue_());
+					
 					break;
 				case "distance":
-					//TODO
 					sensorId = new AgentID(argumentList.get(3));
 					//with = 4, trigger = 5, distance = 6
 					DistanceNauticalMiles distance = new DistanceNauticalMiles(Double.parseDouble(argumentList.get(7)));
@@ -238,7 +241,6 @@ public class CommandInterpreter {
 					System.out.printf("Distnace sensor %s has been made with distance %f.%n", sensorId.getID(),distance.getValue_());
 					break;
 				case "time":
-					//TODO
 					sensorId = new AgentID(argumentList.get(3));
 					//with = 4, trigger = 5, time = 6
 					time = this.setTime(argumentList.get(7));
