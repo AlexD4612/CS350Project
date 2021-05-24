@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+import cs350s21project.controller.CommandManagers;
 import cs350s21project.controller.command.actor.*;
 import cs350s21project.controller.command.munition.*;
 import cs350s21project.controller.command.sensor.*;
@@ -264,21 +264,14 @@ public class CommandInterpreter {
           id = new AgentID(argumentList.get(1));
 					Groundspeed newSpeed = new Groundspeed(Double.parseDouble(argumentList.get(3)));
 					
-					cmd.schedule(new CommandActorSetSpeed(cmd, 
-														  originalCommandText,
-														  actorID,
-														  newSpeed
-														  ));
+					cmd.schedule(new CommandActorSetSpeed(cmd, originalCommandText,id, newSpeed));
 				break;
 				
 				case "course":
            id = new AgentID(argumentList.get(1));
 					Course newCourse = new Course(Double.parseDouble(argumentList.get(3)));
 					
-					cmd.schedule(new CommandActorSetCourse(cmd,
-														   originalCommandText,
-														   actorID,
-														   newCourse));
+					cmd.schedule(new CommandActorSetCourse(cmd,originalCommandText,id,newCourse));
 				break;
 				
 				// depth and altitude are nearly identical cases,
