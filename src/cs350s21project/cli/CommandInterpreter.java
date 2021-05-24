@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+import cs350s21project.controller.*;
 import cs350s21project.controller.CommandManagers;
 import cs350s21project.controller.command.actor.*;
 import cs350s21project.controller.command.munition.*;
@@ -27,7 +29,7 @@ public class CommandInterpreter {
 	private FieldOfView fov;
 	private Power power;
 	private Sensitivity sensitivity;
-	
+	private Time time;
 
 
 	
@@ -208,7 +210,22 @@ public class CommandInterpreter {
 					System.out.printf("Acoustic Sensor %s has been made with sensitivity: %f.%n", sensorId.getID(),sensitivity.getSensitivity());
 					break;
 				case "sonar": //Can have either active or passive.
-					//TODO
+					String sonarType = argumentList.get(3);
+					sensorId = new AgentID(argumentList.get(4));
+					if(sonarType.equals("active")) {
+						//with = 5, power = 6
+						power = this.setPower(argumentList.get(7));
+						//sensitivity = 8
+						sensitivity = this.setSensitivity(argumentList.get(9));
+						cmd.schedule(new CommandSensorDefineSonarActive(cmd,originalCommandText,sensorId,power,sensitivity));
+						System.out.printf("Active Sonar %s has been made with power; %f and sensitivity: %f.%n", sensorId.getID(),power.getPower(),sensitivity.getSensitivity());
+					}else if(sonarType.equals("passive")){
+						//with = 5 sensitivity = 6
+						sensitivity = this.setSensitivity(argumentList.get(7));
+						cmd.schedule(new CommandSensorDefineSonarPassive(cmd,originalCommandText,sensorId,sensitivity));
+						System.out.printf("Passive Sonar %s has been made with sensitivity: %f.%n",sensorId.getID(),sensitivity.getSensitivity());
+					}else
+						throw new RuntimeException("Invalid type of sonar radar.");
 					break;
 				case "depth":
 					fuzeId = new AgentID(argumentList.get(3));
@@ -218,10 +235,18 @@ public class CommandInterpreter {
 					
 					break;
 				case "distance":
-					//TODO
+					sensorId = new AgentID(argumentList.get(3));
+					//with = 4, trigger = 5, distance = 6
+					DistanceNauticalMiles distance = new DistanceNauticalMiles(Double.parseDouble(argumentList.get(7)));
+					cmd.schedule(new CommandSensorDefineDistance(cmd,originalCommandText,sensorId,distance));
+					System.out.printf("Distnace sensor %s has been made with distance %f.%n", sensorId.getID(),distance.getValue_());
 					break;
 				case "time":
-					//TODO
+					sensorId = new AgentID(argumentList.get(3));
+					//with = 4, trigger = 5, time = 6
+					time = this.setTime(argumentList.get(7));
+					cmd.schedule(new CommandSensorDefineTime(cmd,originalCommandText,sensorId,time));
+					System.out.printf("Time Sensor %s created with time: %s.%n", sensorId.getID(),time.toString());
 					break;
 				}
 			} //End define commandType switch
