@@ -3,12 +3,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import cs350s21project.controller.*;
+
 import cs350s21project.controller.command.actor.*;
 import cs350s21project.controller.command.munition.*;
 import cs350s21project.controller.command.sensor.*;
 import cs350s21project.controller.command.view.*;
+import cs350s21project.controller.command.misc.*;
 import cs350s21project.datatype.*;
+
+
+
 public class CommandInterpreter {
 
 	private AgentID id;
@@ -223,11 +227,13 @@ public class CommandInterpreter {
 			} //End define commandType switch
 			break;
 	//---------MISC Commands-------------\\
+		
 		case "delete":
 			id = new AgentID(argumentList.get(2));
 			cmd.schedule(new CommandViewDeleteWindow(cmd,originalCommandText,id));
 			System.out.printf("deleted window %s%n", id.getID());
 			break;
+
 		case "set":
 			switch(argumentList.get(2)) {
 				case "load":
@@ -236,6 +242,7 @@ public class CommandInterpreter {
 					cmd.schedule(new CommandActorLoadMunition(cmd,originalCommandText,id,munitionId));
 					System.out.printf("Loaded new munition for actor %s from %s%n",id.getID(),munitionId.getID());
 				break;
+          
 				case "deploy":
 					if(!argumentList.contains("at")) {
 						id = new AgentID(argumentList.get(1));
@@ -251,22 +258,71 @@ public class CommandInterpreter {
 						cmd.schedule(new CommandActorDeployMunitionShell(cmd, originalCommandText, id, munitionId, azimuth, elevation));
 						System.out.printf("Muniton %s deployed from %s at azimuth %f and elevation %f%n", munitionId.getID(),id.getID(),azimuth.getValue_(),elevation.getValue_());
 					}
-				}
+          break;
+          
+					case "speed":
+          id = new AgentID(argumentList.get(1));
+					Groundspeed newSpeed = new Groundspeed(Double.parseDouble(argumentList.get(3)));
+					
+					cmd.schedule(new CommandActorSetSpeed(cmd, 
+														  originalCommandText,
+														  actorID,
+														  newSpeed
+														  ));
+				break;
+				
+				case "course":
+           id = new AgentID(argumentList.get(1));
+					Course newCourse = new Course(Double.parseDouble(argumentList.get(3)));
+					
+					cmd.schedule(new CommandActorSetCourse(cmd,
+														   originalCommandText,
+														   actorID,
+														   newCourse));
+				break;
+				
+				// depth and altitude are nearly identical cases,
+				// both are measures of distance from the surface
+				// neither should be less than zero.
+				// internally, however, we treat depth as negative 
+				// altitude, so we need to cover that case in the code
+				case "depth":
+				case "altitude":
+           id = new AgentID(argumentList.get(1));
+					double altitudeValue = Double.parseDouble(argumentList.get(3));
+				
+					// in practice, this means just flip the sign if the user specified depth
+					if(argumentList.get(2).equals("depth"))
+						altitudeValue *= -1.0;
+				
+					Altitude newAltitude = new Altitude(altitudeValue);
+					
+					cmd.schedule(new CommandActorSetAltitudeDepth(cmd,
+																  originalCommandText,
+																  id,
+																  newAltitude));					
+				break;
+			}
+
 			break;
+
 		case "@load":
 			//TODO
 			break;
+
 		case "@wait":
 			//TODO
 			break;
+
 		case"@pause":
 			//TODO
 			break;
+
 		case "@set":
 			//TODO
 			break; 
 		case"@exit":
-			//TODO
+			cmd.schedule(new CommandMiscExit(cmd, originalCommandText));
 			break;
 		}//End of switch(commandType)
 	}//End of evaluate()
