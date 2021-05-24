@@ -1,27 +1,42 @@
 package Tests;
-import org.junit.Test;
 
-import Tests.Bomb.E_ErrorType;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.Test;
 
 
 
 public class BombTest {
 
+	
+//-------------------Unit Tests-------------------------------------//
 	@Test
-	public double TestWind(){
-		Bomb bomb = new Bomb(10, 10, 20, 5, new E_ErrorType("NONE"), 0, 0, 0);
-		return 0.0;
+	public void TestWind(){
+		Bomb bomb = new Bomb(10, 10, 20, 5, null, 10, 45, 10);
+		double expectedDirection = 45.0;
+		double actualDirection = bomb.getWindDirection();
+		
+		double expectedSpeed = 10.0;
+		double actualSpeed = bomb.getWindSpeed();
+		
+		assertEquals(expectedSpeed,actualSpeed,0.0001,"getWindSpeed()");
+		assertEquals(expectedDirection,actualDirection,0.0001,"getWindDirection()");
+		
 	}
 	
 	@Test
-	public double TestRelease() {
+	public void TestRelease() {
 		//TODO
-		return 0.0;
+		
 	}
 	@Test
-	public double TestError() {
+	public void TestError() {
 		//TODO
-		return 0.0;
+		
 	}
+	
+//---------------------Behavioral Tests-------------------------------//
+	
 	
 }
