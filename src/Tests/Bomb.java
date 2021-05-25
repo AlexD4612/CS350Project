@@ -38,7 +38,7 @@ public class Bomb
     */
    public Bomb(final double releaseX, final double releaseY, final double releaseAltitude, final double descentSpeed, final E_ErrorType errorType, final double errorRange,
                final double windDirection, final double windSpeed)
-   {
+   { 
       _releaseCoordinates = new Coordinates(releaseX, releaseY);
 
       _releaseAltitude = releaseAltitude;
