@@ -3,8 +3,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-import cs350s21project.controller.*;
 import cs350s21project.controller.CommandManagers;
 import cs350s21project.controller.command.actor.*;
 import cs350s21project.controller.command.munition.*;
@@ -72,11 +70,17 @@ public class CommandInterpreter {
 	
 	public void evaluate(String commandText) {
 		String [] commandArray = commandText.split(";");
-		for(String command: commandArray)
-				this.evaluateString(command);
+		for(String command: commandArray) {
+			command = command.trim();
+			this.evaluateString((command.contains("//")) ? command.substring(0,command.indexOf('/')) : command); //Commands are not ran in evaluateString.
+		}
+				
 	}
 	
 	private void evaluateString(String commandText) {
+		if(commandText.isEmpty())
+				return;
+		System.out.println(commandText);
 		String originalCommandText = commandText;
 		commandText=commandText.toLowerCase(); // lower case to allow any input in weird casing
 		commandText.trim(); //trim all whitespace
