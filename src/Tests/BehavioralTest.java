@@ -59,11 +59,12 @@ public class BehavioralTest {
 	
 	private void writeToCSV(ArrayList<double[]> results,String resultName) {
 		try {
-			PrintWriter pw = new PrintWriter(new File(resultName + ".csv"));
+			PrintWriter pw = new PrintWriter(new File("results\\" + resultName + ".csv"));
 			for(double []  coordinates: results) {
 				double x = coordinates[0], y = coordinates[1];
 				pw.print(x + "," + y + "\n");
 			}
+			pw.print("STDEV X, STDEVY\n=STDEV(A1:A100),=STDEV(B1:B100)\n");
 			pw.close();
 		}catch(FileNotFoundException e) {
 			System.out.println("File Not Found");
