@@ -59,11 +59,17 @@ public class BehavioralTest {
 	
 	private void writeToCSV(ArrayList<double[]> results,String resultName) {
 		try {
-			PrintWriter pw = new PrintWriter(new File(resultName + ".csv"));
+			PrintWriter pw = new PrintWriter(new File("results\\" + resultName + ".csv"));
+			pw.println("X,Y");
 			for(double []  coordinates: results) {
 				double x = coordinates[0], y = coordinates[1];
-				pw.print(x + "," + y + "\n");
+				pw.println(x + "," + y);
 			}
+			//pw.println("STDEV X,STDEV Y\n=STDEV(A2:A101),=STDEV(B2:B101)\nStandard Error\nX,Y\n=A103/SQRT(100),n=B103/SQRT(100)");
+			pw.println("STDEV X, STDEV Y");
+			pw.println("=STDEV(A2:A101),=STDEV(B2:B101)");
+			pw.println("STAND ERROR X, STAND ERROR Y");
+			pw.println("=A103/SQRT(100),=B103/SQRT(100)");
 			pw.close();
 		}catch(FileNotFoundException e) {
 			System.out.println("File Not Found");
@@ -78,7 +84,7 @@ public class BehavioralTest {
 		bt.uniformErrorWithWindBombTest();
 		bt.gaussianErrorWithNoWindBombTest();
 		bt.gaussianErrorWithWindBombTest();
-		System.out.println("All tests are finished, all the outputs will be found in the folder above src.");
+		System.out.println("All tests are finished, all the outputs are found in the results folder above src.");
 	}
 	
 	
