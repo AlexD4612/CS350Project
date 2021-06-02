@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import cs350s21project.controller.*;
+
 import cs350s21project.controller.command.actor.*;
 import cs350s21project.controller.command.munition.*;
 import cs350s21project.controller.command.sensor.*;
@@ -19,6 +20,15 @@ public class CommandInterpreter {
 	private int size;
 	private String objectType;
 	private String subType;
+
+
+	private AgentID fuzeId;
+	private AgentID sensorId;
+	private FieldOfView fov;
+	private Power power;
+	private Sensitivity sensitivity;
+
+
 	
 	private Latitude setLatitude(String str) {
 		String [] latData = str.split("[*#'\"]");
@@ -53,7 +63,17 @@ public class CommandInterpreter {
 		
 	}
 	
+	private Time setTime(String time) {
+		return new Time(Double.parseDouble(time));
+	}
+	
 	public void evaluate(String commandText) {
+		String [] commandArray = commandText.split(";");
+		for(String command: commandArray)
+				this.evaluateString(command);
+	}
+	
+	private void evaluateString(String commandText) {
 		String originalCommandText = commandText;
 		commandText=commandText.toLowerCase(); // lower case to allow any input in weird casing
 		commandText.trim(); //trim all whitespace
@@ -127,16 +147,23 @@ public class CommandInterpreter {
 					System.out.printf(subType+" %s "+"created%n",id.getID());
 					break;
 				case "shell":
-					System.out.println("Shell created");
 					id = new AgentID(argumentList.get(3));
 					cmd.schedule(new CommandMunitionDefineShell(cmd,originalCommandText,id));
 					System.out.printf(subType+" %s "+"created%n",id.getID());
 					break;
 				case "depth_charge":
-					//TODO
+					id = new AgentID(argumentList.get(3));
+					fuzeId = new AgentID(argumentList.get(6));
+					cmd.schedule(new CommandMunitionDefineDepthCharge(cmd,originalCommandText,id,fuzeId));
+					System.out.printf("Depth charge %s created with fuze %s",id.getID(),fuzeId.getID());
 					break;
 				case "missile":
-					//TODO
+					id = new AgentID(argumentList.get(3));
+					sensorId = new AgentID(argumentList.get(6));
+					fuzeId = new AgentID (argumentList.get(8));
+					DistanceNauticalMiles distance = new DistanceNauticalMiles(Double.parseDouble(argumentList.get(11)));
+					cmd.schedule(new CommandMunitionDefineMissile(cmd,originalCommandText,id,sensorId,fuzeId,distance));
+					System.out.printf("Created missile %s with sensor %s and fuze %s and arming distance %f", id.getID(),sensorId.getID(),fuzeId.getID(),distance.getValue_());
 					break;
 				case "torpedo":
 					//TODO
@@ -147,23 +174,34 @@ public class CommandInterpreter {
 				subType = argumentList.get(2); //Types of sensors i.e. radar, thermal, acoustic
 				switch(subType) {
 				case "radar":
-					id = new AgentID(argumentList.get(3));
+					sensorId = new AgentID(argumentList.get(3));
+
 					//with = 4, field = 5, of = 6, view = 7
-					FieldOfView fov = this.setFieldOfView(argumentList.get(8));
+					fov = this.setFieldOfView(argumentList.get(8));
 					//power = 9
-					Power power = this.setPower(argumentList.get(10));
+					power = this.setPower(argumentList.get(10));
 					//sensitivity = 11
-					Sensitivity sensitivity = this.setSensitivity(argumentList.get(12));
-					cmd.schedule(new CommandSensorDefineRadar(cmd,originalCommandText,id,fov,power,sensitivity));
-					System.out.printf("Radar Sensor %s has been made.%n",id.getID());
+					sensitivity = this.setSensitivity(argumentList.get(12));
+					cmd.schedule(new CommandSensorDefineRadar(cmd,originalCommandText,sensorId,fov,power,sensitivity));
+					System.out.printf("Radar Sensor %s has been made.%n",sensorId.getID());
 					break;
 				case"thermal":
-					//TODO
+					sensorId = new AgentID(argumentList.get(3));
+					//with = 4, field = 5, of = 6, view = 7
+					fov = this.setFieldOfView(argumentList.get(8));
+					//sensitivity = 9
+					sensitivity = this.setSensitivity(argumentList.get(10));
+					cmd.schedule(new CommandSensorDefineThermal(cmd,originalCommandText,sensorId,fov,sensitivity));
+					System.out.printf("Thermal Sensor %s has been made with fov: %f and sensitivity: %f.%n", sensorId.getID(),fov.getLimit().getValue_(),sensitivity.getSensitivity());
 					break;
 				case"acoustic":
-					//TODO
+					sensorId = new AgentID(argumentList.get(3));
+					//with = 4, sensitivity = 5
+					sensitivity = this.setSensitivity(argumentList.get(6));
+					cmd.schedule(new CommandSensorDefineAcoustic(cmd,originalCommandText,sensorId,sensitivity));
+					System.out.printf("Acoustic Sensor %s has been made with sensitivity: %f.%n", sensorId.getID(),sensitivity.getSensitivity());
 					break;
-				case "sonar":
+				case "sonar": //Can have either active or passive.
 					//TODO
 					break;
 				case "depth":
@@ -181,7 +219,8 @@ public class CommandInterpreter {
 	//---------MISC Commands-------------\\
 		
 		case "delete":
-			//TODO
+			id = new AgentID(argumentList.get(2));
+			cmd.schedule(new CommandViewDeleteWindow(cmd,originalCommandText,id));
 			break;
 
 		// set <id> <course|speed|altitude|depth> <value>
