@@ -232,26 +232,51 @@ public class CommandInterpreter {
 			}
 			break;
 
+
+		// force <id> state to <coords> with course <course> speed <speed>
+
+		case "@force":
+			id = new AgentID(argumentList.get(1));
+			CoordinateWorld3D coords = setCoordinates(argumentList.get(4));
+			Course course = new Course(Double.parseDouble(argumentList.get(7)));
+			Groundspeed speed = new Groundspeed(Double.parseDouble(argumentList.get(9)));
+			
+			cmd.schedule( new CommandActorSetState(cmd,
+											   originalCommandText,
+											   id,
+											   coords,
+											   course,
+											   speed));			
+			break;
+			
 		case "@load":
-			//TODO
+			cmd.schedule(new CommandMiscLoad(cmd, originalCommandText, argumentList.get(1)));
 			break;
 
 		case "@wait":
-			//TODO
+			cmd.schedule(new CommandMiscWait(cmd,
+											 originalCommandText,
+											 new Time( Double.parseDouble( argumentList.get(1)))));
 			break;
 
-		case"@pause":
-			//TODO
+		case "@pause":
+			cmd.schedule(new CommandMiscPause(cmd, originalCommandText));
 			break;
 
+		case "@resume":
+			cmd.schedule(new CommandMiscResume(cmd, originalCommandText));
+			break;
+			
 		case "@set":
-			//TODO
-			break;
-
+			if(argumentList.get(1).equals("update"))
+				cmd.schedule(new CommandMiscSetUpdate(cmd, 
+													  originalCommandText, 
+													  new Time( Double.parseDouble( argumentList.get(2)))));
+		break;
+			
 		case"@exit":
 			cmd.schedule(new CommandMiscExit(cmd, originalCommandText));
-			break;
-		}//End of switch(commandType)
+			break;		}//End of switch(commandType)
 	}//End of evaluate()
 }
 	
