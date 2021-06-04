@@ -33,12 +33,24 @@ public class CommandInterpreter {
 	
 	private Latitude setLatitude(String str) {
 		String [] latData = str.split("[*#'\"]");
-		return new Latitude(Integer.parseInt(latData[0]), Integer.parseInt(latData[1]),Double.parseDouble(latData[2]));
+		int degrees = Integer.parseInt(latData[0]);
+		int minutes = Integer.parseInt(latData[1]);
+		double seconds = Double.parseDouble(latData[2]);
+		if((degrees < 0 || degrees >= 60) || (minutes < 0 || minutes >= 60) || (seconds < 0 || seconds >= 60))
+			throw new RuntimeException("Invalid parameters for Latitude");
+		
+		return new Latitude(degrees, minutes,seconds);
 	}
 	
 	private Longitude setLongitude(String str) {
 		String [] lonData = str.split("[*#'\"]");
-		return new Longitude(Integer.parseInt(lonData[0]), Integer.parseInt(lonData[1]),Double.parseDouble(lonData[2]));
+		int degrees = Integer.parseInt(lonData[0]);
+		int minutes = Integer.parseInt(lonData[1]);
+		double seconds = Double.parseDouble(lonData[2]);
+		if((degrees < 0 || degrees >= 180) || (minutes < 0 || minutes >= 60) || (seconds < 0 || seconds >= 60))
+			throw new RuntimeException("Invalid parameters for Longitude");
+		
+		return new Longitude(degrees, minutes,seconds);
 	}
 	
 	private FieldOfView setFieldOfView(String degree) {
