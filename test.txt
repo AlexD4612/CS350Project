@@ -1,0 +1,3 @@
+define munition bomb a1
+define ship MYSHIP with munition (a1)
+create actor SHIP from MYSHIP at 49*41'9.2"/117*26'23.8"/0 at course 095 speed 10

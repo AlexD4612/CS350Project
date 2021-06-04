@@ -33,12 +33,24 @@ public class CommandInterpreter {
 	
 	private Latitude setLatitude(String str) {
 		String [] latData = str.split("[*#'\"]");
-		return new Latitude(Integer.parseInt(latData[0]), Integer.parseInt(latData[1]),Double.parseDouble(latData[2]));
+		int degrees = Integer.parseInt(latData[0]);
+		int minutes = Integer.parseInt(latData[1]);
+		double seconds = Double.parseDouble(latData[2]);
+		if((degrees < 0 || degrees >= 60) || (minutes < 0 || minutes >= 60) || (seconds < 0 || seconds >= 60))
+			throw new RuntimeException("Invalid parameters for Latitude");
+		
+		return new Latitude(degrees, minutes,seconds);
 	}
 	
 	private Longitude setLongitude(String str) {
 		String [] lonData = str.split("[*#'\"]");
-		return new Longitude(Integer.parseInt(lonData[0]), Integer.parseInt(lonData[1]),Double.parseDouble(lonData[2]));
+		int degrees = Integer.parseInt(lonData[0]);
+		int minutes = Integer.parseInt(lonData[1]);
+		double seconds = Double.parseDouble(lonData[2]);
+		if((degrees < 0 || degrees >= 180) || (minutes < 0 || minutes >= 60) || (seconds < 0 || seconds >= 60))
+			throw new RuntimeException("Invalid parameters for Longitude");
+		
+		return new Longitude(degrees, minutes,seconds);
 	}
 	
 	private FieldOfView setFieldOfView(String degree) {
@@ -328,25 +340,51 @@ public class CommandInterpreter {
 
 			break;
 
+
+		// force <id> state to <coords> with course <course> speed <speed>
+
+		case "@force":
+			id = new AgentID(argumentList.get(1));
+			CoordinateWorld3D coords = setCoordinates(argumentList.get(4));
+			Course course = new Course(Double.parseDouble(argumentList.get(7)));
+			Groundspeed speed = new Groundspeed(Double.parseDouble(argumentList.get(9)));
+			
+			cmd.schedule( new CommandActorSetState(cmd,
+											   originalCommandText,
+											   id,
+											   coords,
+											   course,
+											   speed));			
+			break;
+			
 		case "@load":
-			//TODO
+			cmd.schedule(new CommandMiscLoad(cmd, originalCommandText, argumentList.get(1)));
 			break;
 
 		case "@wait":
-			//TODO
+			cmd.schedule(new CommandMiscWait(cmd,
+											 originalCommandText,
+											 new Time( Double.parseDouble( argumentList.get(1)))));
 			break;
 
-		case"@pause":
-			//TODO
+		case "@pause":
+			cmd.schedule(new CommandMiscPause(cmd, originalCommandText));
 			break;
 
+		case "@resume":
+			cmd.schedule(new CommandMiscResume(cmd, originalCommandText));
+			break;
+			
 		case "@set":
-			//TODO
-			break; 
+			if(argumentList.get(1).equals("update"))
+				cmd.schedule(new CommandMiscSetUpdate(cmd, 
+													  originalCommandText, 
+													  new Time( Double.parseDouble( argumentList.get(2)))));
+		break;
+			
 		case"@exit":
 			cmd.schedule(new CommandMiscExit(cmd, originalCommandText));
-			break;
-		}//End of switch(commandType)
+			break;		}//End of switch(commandType)
 	}//End of evaluate()
 }
 	
